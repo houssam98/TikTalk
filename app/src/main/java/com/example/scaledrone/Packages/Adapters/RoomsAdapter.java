@@ -116,11 +116,10 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.MyViewHolder
     }
 
     public void removeItem(int position) {
-
         roomsList.remove(position);
-
-        notifyItemRemoved(position);
+        notifyDataSetChanged();
     }
+
 
 
     public List<Room> getData() {

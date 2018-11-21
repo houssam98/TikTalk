@@ -1,14 +1,20 @@
 package com.example.scaledrone.Packages.Activities;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.example.scaledrone.Packages.Objects.Constants;
 import com.example.scaledrone.Packages.Objects.MemberData;
@@ -27,6 +33,7 @@ import com.scaledrone.lib.Scaledrone;
 import java.util.Random;
 import java.util.UUID;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.SyncConfiguration;
@@ -37,6 +44,9 @@ public class RoomChatActivity extends AppCompatActivity implements RoomListener 
     private String channelID = "AmMpKS4ir9CUKeYS";
     private String roomName;
     private EditText editText;
+    private TextView roomName_textview;
+    private ImageButton button_back;
+    private CircleImageView room_image;
     private Scaledrone scaledrone;
     private MessageAdapter messageAdapter;
     private ListView messagesView;
@@ -44,13 +54,13 @@ public class RoomChatActivity extends AppCompatActivity implements RoomListener 
     private MemberData memberdata;
     private Realm realm;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         editText = (EditText) findViewById(R.id.editText);
-        //editText.setBackground(new ColorDrawable(Color.TRANSPARENT));
 
         messageAdapter = new MessageAdapter(this);
         messagesView = (ListView) findViewById(R.id.messages_view);
@@ -61,7 +71,28 @@ public class RoomChatActivity extends AppCompatActivity implements RoomListener 
         username = intentExtras.getStringExtra("username");
         memberdata = new MemberData(username, getRandomColor());
 
+        roomName_textview = (TextView) findViewById(R.id.room_name);
+        button_back = (ImageButton) findViewById(R.id.back_image_button);
+        room_image = (CircleImageView) findViewById(R.id.room_image);
+
+        roomName_textview.setText(getRoomName(roomName));
+        if(getRoomImage(roomName) != null) {
+            room_image.setImageBitmap(getRoomImage(roomName));
+        }
+        button_back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(RoomChatActivity.this, TikTalkActivity.class);
+                intent.putExtra("username", username);
+                startActivity(intent);
+                finish();
+            }
+        });
+
         getMessageHistory(roomName);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         scaledrone = new Scaledrone(channelID, memberdata);
         scaledrone.connect(new Listener() {
@@ -181,10 +212,64 @@ public class RoomChatActivity extends AppCompatActivity implements RoomListener 
             }
     }
 
+    private Bitmap getRoomImage(String roomName){
+        Bitmap bmp = null;
+        SyncConfiguration configuration = SyncUser.current()
+                .createConfiguration(Constants.REALM_BASE_URL + "/default")
+                .build();
+        realm = Realm.getInstance(configuration);
+        RealmResults<com.example.scaledrone.Packages.Objects.Room> rooms = realm.where(com.example.scaledrone.Packages.Objects.Room.class).equalTo("roomName", getRoomName(roomName)).findAll();
+        com.example.scaledrone.Packages.Objects.Room room = new com.example.scaledrone.Packages.Objects.Room();
+        for(com.example.scaledrone.Packages.Objects.Room room1 : rooms){
+            room = room1;
+        }
+        bmp = room.getRoomImage();
+        return bmp;
+    }
+
     public String getRoomName(String roomName){
         String[] roomNames = roomName.split("-");
         String room_name = roomNames[1];
         return room_name;
     }
+/*
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.toolbar_chat, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.delete_room) {
+            deleteRoom(getRoomName(roomName));
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+*/
+    private void deleteRoom(String roomName){
+        SyncConfiguration configuration = SyncUser.current()
+                .createConfiguration(Constants.REALM_BASE_URL + "/default")
+                .build();
+        Realm realm_2 = Realm.getInstance(configuration);
+        realm_2.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                RealmResults<com.example.scaledrone.Packages.Objects.Room> rooms = realm_2.where(com.example.scaledrone.Packages.Objects.Room.class).equalTo("roomName", roomName).findAll();
+                rooms.deleteAllFromRealm();
+                RealmResults<Message> messages = realm_2.where(Message.class).equalTo("roomName", roomName).findAll();
+                messages.deleteAllFromRealm();
+            }
+        });
+       realm_2.close();
+
+        Intent intent = new Intent(RoomChatActivity.this, TikTalkActivity.class);
+        intent.putExtra("username", username);
+        startActivity(intent);
+        finish();
+
+        }
+
 }
 

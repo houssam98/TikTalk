@@ -1,13 +1,18 @@
 package com.example.scaledrone.Packages.Adapters;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
@@ -15,7 +20,9 @@ import android.view.animation.Animation;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toolbar;
 
+import com.example.scaledrone.Packages.Activities.RoomChatActivity;
 import com.example.scaledrone.Packages.Objects.Constants;
 import com.example.scaledrone.Packages.Objects.Message;
 import com.example.scaledrone.Packages.Objects.User;
@@ -39,6 +46,7 @@ public class MessageAdapter extends BaseAdapter {
     Context context;
     private Realm realm;
     private Handler handler;
+    private boolean longClicked = false;
 
     public MessageAdapter(Context context) {
         this.context = context;
@@ -77,10 +85,29 @@ public class MessageAdapter extends BaseAdapter {
             convertView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View view) {
+                    longClicked = true;
+                    view.setBackgroundColor(Color.GRAY);
+                    DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            switch (which){
+                                case DialogInterface.BUTTON_POSITIVE:
+                                    deleteMessage(message);
+                                    break;
 
+                                case DialogInterface.BUTTON_NEGATIVE:
+                                    view.setBackgroundColor(0);
+                                    break;
+                            }
+                        }
+                    };
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                    builder.setMessage("Are you sure you want to delete this message?").setPositiveButton("Yes", dialogClickListener)
+                            .setNegativeButton("No", dialogClickListener).show();
                     return false;
                 }
             });
+
             holder.messageBody = (TextView) convertView.findViewById(R.id.message_body);
             holder.messageDate = (TextView) convertView.findViewById(R.id.message_time);
             convertView.setTag(holder);
@@ -106,9 +133,16 @@ public class MessageAdapter extends BaseAdapter {
             holder.messageBody = (TextView) convertView.findViewById(R.id.message_body);
             holder.messageDate = (TextView) convertView.findViewById(R.id.message_time);
             convertView.setTag(holder);
+            if(setUpRealm(message.getOwner()).getProfile_picture_byte() != null){
+                holder.avatar.setImageBitmap(setUpRealm(message.getOwner()).getProfile_picture());
+                holder.name.setText(message.getOwner());
+                holder.messageBody.setText(message.getText());
+            }else{
+                GradientDrawable drawable = (GradientDrawable) holder.avatar.getBackground();
+                drawable.setColor(Color.parseColor(getRandomColor()));
+                holder.name.setText(message.getOwner());
+                holder.messageBody.setText(message.getText());}
 
-            holder.name.setText(message.getOwner());
-            holder.messageBody.setText(message.getText());
             holder.messageBody.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -123,11 +157,7 @@ public class MessageAdapter extends BaseAdapter {
                 }
             });
 
-            if(setUpRealm(message.getOwner()).getProfile_picture_byte() != null){
-                holder.avatar.setImageBitmap(setUpRealm(message.getOwner()).getProfile_picture());
-            }else{
-            GradientDrawable drawable = (GradientDrawable) holder.avatar.getBackground();
-            drawable.setColor(Color.parseColor(getRandomColor()));}
+
         }
 
         return convertView;
@@ -145,6 +175,23 @@ public class MessageAdapter extends BaseAdapter {
         }
         realm.close();
         return user1;
+    }
+
+    private void deleteMessage(Message message){
+        messages.remove(message);
+
+        SyncConfiguration configuration = SyncUser.current()
+                .createConfiguration(Constants.REALM_BASE_URL + "/default")
+                .build();
+        Realm realm_2 = Realm.getInstance(configuration);
+        realm_2.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                RealmResults<Message> message1 = realm_2.where(Message.class).equalTo("messageID", message.getMessageID()).findAll();
+                message1.deleteAllFromRealm();
+            }
+        });
+        notifyDataSetChanged();
     }
 
     private String getRandomColor() {

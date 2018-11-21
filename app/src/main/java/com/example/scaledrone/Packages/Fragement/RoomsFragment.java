@@ -60,13 +60,17 @@ public class RoomsFragment extends Fragment {
         recyclerView.addItemDecoration(new DividerItemDecoration(this.getContext(), LinearLayoutManager.VERTICAL));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         RealmResults<Room> rooms = setUpRealm();
-        roomsList.addAll(rooms);
+        for(Room room : rooms){
+            if(room.getRoomName() != null){
+                roomsList.add(room);
+            }
+        }
         roomsAdapter = new RoomsAdapter(roomsList);
         recyclerView.setAdapter(roomsAdapter);
 
         username = getArguments().getString("username");
 
-        enableSwipeToDeleteAndUndo();
+       // enableSwipeToDeleteAndUndo();
 
         recyclerView.addOnItemTouchListener(new RecyclerTouchListener(this.getContext(), recyclerView, new RecyclerTouchListener.ClickListener() {
             @Override
@@ -120,10 +124,7 @@ public class RoomsFragment extends Fragment {
                 final int position = viewHolder.getAdapterPosition();
                 final Room room = roomsAdapter.getData().get(position);
 
-
                 roomsAdapter.removeItem(position);
-
-             //   deleteRoom(room.getRoomName());
 
                 Snackbar snackbar = Snackbar
                         .make(getView(), "Room " + room.getRoomName() +"was removed!", Snackbar.LENGTH_SHORT);
@@ -138,22 +139,6 @@ public class RoomsFragment extends Fragment {
         itemTouchhelper.attachToRecyclerView(recyclerView);
     }
 
-
-    private void deleteRoom(String roomName){
-        SyncConfiguration configuration = SyncUser.current()
-                .createConfiguration(Constants.REALM_BASE_URL + "/default")
-                .build();
-        realm = Realm.getInstance(configuration);
-
-        RealmResults<Room> rooms = realm.where(Room.class).equalTo("roomName", roomName).findAllAsync();
-        realm.executeTransactionAsync(realm1 -> {
-            for(Room room1 : rooms){
-                room1.deleteFromRealm();
-            }
-        });
-        realm.close();
-
-    }
 
 
     private RealmResults<Room> setUpRealm() {
@@ -214,7 +199,11 @@ public class RoomsFragment extends Fragment {
     public void refreshRooms(){
         roomsList.clear();
         RealmResults<Room> rooms = setUpRealm();
-        roomsList.addAll(rooms);
+        for(Room room : rooms){
+            if(room.getRoomName() != null){
+                roomsList.add(room);
+            }
+        }
         roomsAdapter.notifyDataSetChanged();
     }
 
