@@ -45,13 +45,14 @@ public class Message extends RealmObject {
         this.timestamp = message.timestamp;
     }
 
-    public Message(String text, MemberData data, String roomName, boolean belongsToCurrentUser) {
+    public Message(String text, MemberData data, String roomName, boolean belongsToCurrentUser, String owner) {
         this.messageID = UUID.randomUUID().toString();
         this.text = text;
         this.data = data;
         this.belongsToCurrentUser = belongsToCurrentUser;
         this.roomName = roomName;
         this.timestamp = new Date();
+        this.owner = owner;
     }
 
 

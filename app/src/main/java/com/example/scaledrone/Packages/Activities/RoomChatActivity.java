@@ -53,6 +53,7 @@ public class RoomChatActivity extends AppCompatActivity implements RoomListener 
     private String username;
     private MemberData memberdata;
     private Realm realm;
+    private static String message_ID;
 
 
     @Override
@@ -135,10 +136,13 @@ public class RoomChatActivity extends AppCompatActivity implements RoomListener 
                         message_db.setOwner(username);
                         message_db.setRoomName(getRoomName(roomName));
                         realm.insert(message_db);
+                        message_ID = message_db.getMessageID();
                     });
                     realm.close();
                     scaledrone.publish(roomName, message);
                     editText.getText().clear();
+
+
         }
     }
 
@@ -158,7 +162,7 @@ public class RoomChatActivity extends AppCompatActivity implements RoomListener 
         try {
             final MemberData data = mapper.treeToValue(member.getClientData(), MemberData.class);
             boolean belongsToCurrentUser = member.getId().equals(scaledrone.getClientID());
-            final Message message = new Message(json.asText(), data, roomName, belongsToCurrentUser);
+            final Message message = new Message(json.asText(), data, roomName, belongsToCurrentUser, data.getName());
 
             runOnUiThread(new Runnable() {
                 @Override

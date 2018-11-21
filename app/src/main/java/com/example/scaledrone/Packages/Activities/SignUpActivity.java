@@ -50,8 +50,6 @@ public class SignUpActivity extends AppCompatActivity {
         setContentView(R.layout.sign_up);
         Realm.init(this);
 
-
-
         profile_pic = findViewById(R.id.imageView_profile);
         username = findViewById(R.id.editText_username);
         password = findViewById(R.id.editText_password);
@@ -86,7 +84,6 @@ public class SignUpActivity extends AppCompatActivity {
                                 user1.setProfile_picture(convertImage());
                             }
                                 realm.insert(user1);
-
                         });
                         realm.close();
                         goToTalkActivity(username1);
@@ -123,7 +120,6 @@ public class SignUpActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK && requestCode == PICK_IMAGE) {
             imageUri = data.getData();
             profile_pic.setImageURI(imageUri);
-
         }
     }
 
@@ -135,5 +131,4 @@ public class SignUpActivity extends AppCompatActivity {
         imageInByte = baos.toByteArray();
         return imageInByte;
     }
-
 }

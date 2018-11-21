@@ -42,8 +42,8 @@ import io.realm.SyncUser;
 
 public class MessageAdapter extends BaseAdapter {
 
-    List<Message> messages = new ArrayList<Message>();
-    Context context;
+    private List<Message> messages = new ArrayList<Message>();
+    private Context context;
     private Realm realm;
     private Handler handler;
     private boolean longClicked = false;
@@ -82,6 +82,11 @@ public class MessageAdapter extends BaseAdapter {
 
         if (message.isBelongsToCurrentUser()) {
             convertView = messageInflater.inflate(R.layout.my_message, null);
+            holder.messageBody = (TextView) convertView.findViewById(R.id.message_body);
+            holder.messageDate = (TextView) convertView.findViewById(R.id.message_time);
+            convertView.setTag(holder);
+            holder.messageBody.setText(message.getText());
+
             convertView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View view) {
@@ -108,10 +113,6 @@ public class MessageAdapter extends BaseAdapter {
                 }
             });
 
-            holder.messageBody = (TextView) convertView.findViewById(R.id.message_body);
-            holder.messageDate = (TextView) convertView.findViewById(R.id.message_time);
-            convertView.setTag(holder);
-            holder.messageBody.setText(message.getText());
             holder.messageBody.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -133,15 +134,16 @@ public class MessageAdapter extends BaseAdapter {
             holder.messageBody = (TextView) convertView.findViewById(R.id.message_body);
             holder.messageDate = (TextView) convertView.findViewById(R.id.message_time);
             convertView.setTag(holder);
-            if(setUpRealm(message.getOwner()).getProfile_picture_byte() != null){
-                holder.avatar.setImageBitmap(setUpRealm(message.getOwner()).getProfile_picture());
-                holder.name.setText(message.getOwner());
-                holder.messageBody.setText(message.getText());
-            }else{
+            Bitmap bmp = setUpRealm(message.getOwner()).getProfile_picture();
+            holder.name.setText(message.getOwner());
+            holder.avatar.setImageBitmap(bmp);
+            holder.messageBody.setText(message.getText());
+            /*else{
                 GradientDrawable drawable = (GradientDrawable) holder.avatar.getBackground();
                 drawable.setColor(Color.parseColor(getRandomColor()));
                 holder.name.setText(message.getOwner());
-                holder.messageBody.setText(message.getText());}
+                Log.d("OWNER", holder.name.getText().toString());
+                holder.messageBody.setText(message.getText());}*/
 
             holder.messageBody.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -191,6 +193,11 @@ public class MessageAdapter extends BaseAdapter {
                 message1.deleteAllFromRealm();
             }
         });
+        notifyDataSetChanged();
+    }
+
+    public void clearAll(){
+        messages.clear();
         notifyDataSetChanged();
     }
 

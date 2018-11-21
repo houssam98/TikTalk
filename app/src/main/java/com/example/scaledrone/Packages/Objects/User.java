@@ -34,8 +34,10 @@ public class User extends RealmObject {
     }
 
     public Bitmap getProfile_picture() {
-        Bitmap bmp = BitmapFactory.decodeByteArray(profile_picture, 0, profile_picture.length);
-
+        Bitmap bmp = null;
+        if(profile_picture != null) {
+            bmp = BitmapFactory.decodeByteArray(profile_picture, 0, profile_picture.length);
+        }
         return bmp;
     }
 
