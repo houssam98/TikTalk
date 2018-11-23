@@ -92,8 +92,8 @@ public class SignUpActivity extends AppCompatActivity {
                     @Override
                     public void onError(ObjectServerError error) {
                        // showProgress(false);
-                        password.setError("Uh oh something went wrong!");
-                        password.requestFocus();
+                        username.setError("Unfortunately, this name has been taken!");
+                        username.requestFocus();
                         Log.e("Login error", error.toString());
                     }
                 });

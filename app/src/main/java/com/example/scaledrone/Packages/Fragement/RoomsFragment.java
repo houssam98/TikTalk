@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
@@ -39,6 +40,7 @@ import io.realm.SyncUser;
 
 public class RoomsFragment extends Fragment {
     private RecyclerView recyclerView;
+    private SwipeRefreshLayout swipeRefreshLayout;
     private RoomsAdapter roomsAdapter;
     private ArrayList<Room> roomsList = new ArrayList<>();
     private String username;
@@ -52,6 +54,7 @@ public class RoomsFragment extends Fragment {
         setHasOptionsMenu(true);
         handler = new Handler();
         View view = inflater.inflate(R.layout.rooms_fragment,container,false);
+        swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_container);
         Realm.init(this.getContext());
         recyclerView = view.findViewById(R.id.recyclerView_rooms);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this.getContext());
@@ -69,6 +72,15 @@ public class RoomsFragment extends Fragment {
         recyclerView.setAdapter(roomsAdapter);
 
         username = getArguments().getString("username");
+
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+
+                refreshRooms();
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        });
 
        // enableSwipeToDeleteAndUndo();
 
@@ -99,7 +111,25 @@ public class RoomsFragment extends Fragment {
                 roomsAdapter.notifyDataSetChanged();
                 recyclerView.invalidate();
             }
-        }, 1000);
+        }, 2000);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                refreshRooms();
+                roomsAdapter.notifyDataSetChanged();
+                recyclerView.invalidate();
+            }
+        }, 3000);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                refreshRooms();
+                roomsAdapter.notifyDataSetChanged();
+                recyclerView.invalidate();
+            }
+        }, 4000);
 
         return view;
     }
@@ -175,7 +205,7 @@ public class RoomsFragment extends Fragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Enter password: ");
         final EditText input = new EditText(getContext());
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         builder.setView(input);
         builder.setPositiveButton("Go", new DialogInterface.OnClickListener() {
             @Override
