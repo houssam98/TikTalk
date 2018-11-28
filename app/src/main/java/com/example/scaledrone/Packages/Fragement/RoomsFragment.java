@@ -2,12 +2,9 @@ package com.example.scaledrone.Packages.Fragement;
 import android.content.DialogInterface;
 import android.content.Intent;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
@@ -15,7 +12,6 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -33,7 +29,6 @@ import com.example.scaledrone.Packages.R;
 import java.util.ArrayList;
 
 import io.realm.Realm;
-import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.SyncConfiguration;
 import io.realm.SyncUser;
@@ -82,7 +77,6 @@ public class RoomsFragment extends Fragment {
             }
         });
 
-       // enableSwipeToDeleteAndUndo();
 
         recyclerView.addOnItemTouchListener(new RecyclerTouchListener(this.getContext(), recyclerView, new RecyclerTouchListener.ClickListener() {
             @Override
@@ -131,6 +125,10 @@ public class RoomsFragment extends Fragment {
             }
         }, 4000);
 
+        while(roomsList.size() == 0){
+            refreshRooms();
+        }
+
         return view;
     }
 
@@ -144,31 +142,6 @@ public class RoomsFragment extends Fragment {
         }
         return false;
     }
-
-    private void enableSwipeToDeleteAndUndo() {
-        SwipeToDeleteCallback swipeToDeleteCallback = new SwipeToDeleteCallback(getContext()) {
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-
-
-                final int position = viewHolder.getAdapterPosition();
-                final Room room = roomsAdapter.getData().get(position);
-
-                roomsAdapter.removeItem(position);
-
-                Snackbar snackbar = Snackbar
-                        .make(getView(), "Room " + room.getRoomName() +"was removed!", Snackbar.LENGTH_SHORT);
-
-                snackbar.setActionTextColor(Color.YELLOW);
-                snackbar.show();
-
-            }
-        };
-
-        ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeToDeleteCallback);
-        itemTouchhelper.attachToRecyclerView(recyclerView);
-    }
-
 
 
     private RealmResults<Room> setUpRealm() {
